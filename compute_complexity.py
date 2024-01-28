@@ -3,6 +3,8 @@ import ast
 from pathlib import Path
 import sympy
 
+complexities = {}
+
 class Visitor(ast.NodeVisitor):
     def visit_Await(self, node):
         self.generic_visit(node)
@@ -49,7 +51,6 @@ class Visitor(ast.NodeVisitor):
     def visit_Continue(self,node):
         self.generic_visit(node)
 
-
 class _FunctionFinder(Visitor):
     def __init__(self):
         self.result = []
@@ -62,31 +63,47 @@ class _ComplexityAnalyzer(Visitor):
     def __init__(self):
         self.input_symbols = {}
         self.result = [0]
+        self.symbol_table = {}
 
     def visit_Assign(self, node):
         self.generic_visit(node)
+        for target in node.targets:
+            self.symbol_table[target.id] = self.evaluate(node.value)
 
     def visit_AugAssign(self, node):
         self.generic_visit(node)
 
     def visit_For(self, node):
+        iter = self.evaluate(node.iter)
+        self.symbol_table[node.target.id] = iter.length
+        assert isinstance(iter, _Iterable)
         self.result.append(0)
         self.generic_visit(node)
         inner_complexity = self.result.pop()
-        iter = self.evaluate(node.iter)
-        assert isinstance(iter, _Iterable)
         iter_complexity = iter.length
         complexity = iter_complexity + 1 + iter_complexity*inner_complexity
         self.result[-1] += complexity
 
     def evaluate(self, expr):
+        if expr is None:
+            return None
         if isinstance(expr, ast.Constant):
             return expr.value
         if isinstance(expr, ast.Name):
+            if expr.id in self.symbol_table:
+                return self.symbol_table[expr.id]
             return self.input_symbols[expr.id]
         if isinstance(expr, ast.Expr):
             return self.evaluate(expr)
-
+        if isinstance(expr, ast.Subscript):
+            if isinstance(expr.slice, ast.Slice):
+                s = expr.slice
+                iterable = self.evaluate(expr.value)
+                start = self.evaluate(s.lower)
+                stop = self.evaluate(s.upper)
+                step = self.evaluate(s.step)
+                return compute_slice(iterable, start, stop, step)
+            raise Exception()
         if isinstance(expr, ast.BinOp):
             if isinstance(expr.op, ast.Mult):
                 return self.evaluate(expr.left) * self.evaluate(expr.right)
@@ -128,6 +145,12 @@ class _ComplexityAnalyzer(Visitor):
         assert len(self.result) == 1
         return self.result[0]
 
+def compute_slice(iterable, start, stop, step):
+    start = start or 0
+    stop = stop or iterable.length
+    step = step or 1
+    return _Iterable(sympy.ceiling((stop-start)/step))
+
 def compute_range(start, stop=None, step=1):
     if stop is None:
         stop = start
@@ -153,8 +176,8 @@ def find_functions(tree):
 
 def compute_complexity(func_def):
     analyzer = _ComplexityAnalyzer()
-    complexity = analyzer.analyze(func_def)
-    return complexity
+    complexity = analyzer.analyze(func_def).expand()
+    return complexity, sympy.simplify(str(complexity).split("+")[0])
 
 def main():
     parser = argparse.ArgumentParser()
@@ -164,8 +187,20 @@ def main():
     tree = read_program(config.path)
     functions = find_functions(tree)
     for function in functions:
-        print(compute_complexity(function))
+        gr, bo = compute_complexity(function)
+        print(function.name)
+        print(f"Growth Rate Function: {gr}", f"O({bo})", sep="\n")
+        print()
+
+def gui_call(file):
+    tree = read_program(file)
+    functions = find_functions(tree)
+    ret_funcs  = dict()
+    for function in functions:
+        gr, bo = compute_complexity(function)
+        ret_funcs[function.name] = [gr, bo]
+        print(gr, bo, function.name)
+    return ret_funcs
 
 if __name__ == "__main__":
-    print("Ran from terminal as main module")
     main()
