@@ -69,17 +69,17 @@ class _ComplexityAnalyzer(Visitor):
         self.generic_visit(node)
         for target in node.targets:
             self.symbol_table[target.id] = self.evaluate(node.value)
-        print(self.symbol_table)
 
     def visit_AugAssign(self, node):
         self.generic_visit(node)
 
     def visit_For(self, node):
+        iter = self.evaluate(node.iter)
+        self.symbol_table[node.target.id] = iter.length
+        assert isinstance(iter, _Iterable)
         self.result.append(0)
         self.generic_visit(node)
         inner_complexity = self.result.pop()
-        iter = self.evaluate(node.iter)
-        assert isinstance(iter, _Iterable)
         iter_complexity = iter.length
         complexity = iter_complexity + 1 + iter_complexity*inner_complexity
         self.result[-1] += complexity
@@ -103,7 +103,7 @@ class _ComplexityAnalyzer(Visitor):
                 stop = self.evaluate(s.upper)
                 step = self.evaluate(s.step)
                 return compute_slice(iterable, start, stop, step)
-            print(expr.args[0].slice.lower.value, expr.args[0].slice.upper.id)
+            raise Exception()
         if isinstance(expr, ast.BinOp):
             if isinstance(expr.op, ast.Mult):
                 return self.evaluate(expr.left) * self.evaluate(expr.right)
