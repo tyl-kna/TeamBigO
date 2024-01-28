@@ -1,13 +1,18 @@
 import tkinter as tk
+from tkinter.ttk import *
+from tkinter import *
 from tkinter import filedialog, messagebox, font, PhotoImage
 from compute_complexity import gui_call
+from GraphBigO import PlotBigO
 from PIL import Image, ImageTk
 import sympy
+from sympy import sympify
+import re
 
 TBFILE = None
 FILE1 = None
 current_font_size = 14  # Default font size
-
+big_ohs = list()
  # Basic functions created here ------------------------
 # Function to clear the screen
 def clear_screen():
@@ -156,7 +161,7 @@ def open_home_page():
   clear_button.grid(row=2, column=0, sticky=tk.E, padx=360)
 
   def calculate_big_o():
-    global FILE1, TBFILE
+    global FILE1, TBFILE, big_ohs
     if FILE1 == None:
       messagebox.showerror('Selection Error',
                            'No file was selected, please select a file!')
@@ -167,6 +172,20 @@ def open_home_page():
         print(functions)
         for key in functions: 
             final_string += str(key) + "\t\tGrowth Rate: " + str(sympy.simplify(functions[str(key)][0]).expand()) + "\n\t\t" + "Big O Notation: " + str(sympy.simplify(functions[str(key)][1]).expand()) + "\n\n"
+            bigo = str(sympy.simplify(functions[str(key)][1]).expand())
+            bigo = re.sub("ceiling\(", "", bigo) 
+            bigo = re.sub("\)", "", bigo)
+            bigO = sympify(bigo)
+            big_ohs.append(bigO)
+            #PlotBigO(bigo)
+        
+        #image1 = Image.open("plot.jpg")
+        #image1=image1.resize((450, 350))
+        #test = ImageTk.PhotoImage(image1)
+        #label1 = tk.Label(image=test)
+        #label1.image = test
+        # Position image
+        #label1.place(x=700, y=1)
         #expr = sympy.simplify(cal).expand()
 
         text_box.insert(tk.END, final_string)
@@ -175,7 +194,36 @@ def open_home_page():
     #  text_box.insert(tk.END, content)
     save_point(text_box)
     FILE1 = None
+     
+  def graph_big_o():
+    if len(big_ohs) <= 0:
+      messagebox.showerror('Selection Error',
+                           'No file was computed, please select and analyze a file!')
+      return
+    #PlotBigO(big_ohs)
+    
+    newWindow = Toplevel(root)
+ 
+    # sets the title of the
+    # Toplevel widget
+    newWindow.title("Graphing Big O")
+ 
+    # sets the geometry of toplevel
+    newWindow.geometry("800x800")
+    
+    #for i in big_ohs:
+    PlotBigO(big_ohs)
+    
+    image1 = Image.open("plot.jpg")
+    image1=image1.resize((770, 770))
+    test = ImageTk.PhotoImage(image1)
+    label1 = tk.Label(newWindow, image=test)
+    label1.image = test
+    # Position image
+    label1.place(x=10, y=40)
+    #expr = sympy.simplify(cal).expand()
 
+    # A Label widget to show in toplevel
   calculate_button = tk.Button(root,
                                text="Calculate",
                                command=calculate_big_o,
@@ -184,6 +232,14 @@ def open_home_page():
                                font=14)
   calculate_button.grid(row=2, column=0, sticky=tk.W, padx=335)
 
+  graph_button = tk.Button(root,
+                               text="Graph Big O",
+                               command=graph_big_o,
+                               width=13,
+                               height=1,
+                               font=14)
+  graph_button.grid(row=3, column=0, sticky=tk.W, padx=335)
+  
   select_button = tk.Button(root,
                             text="Select Text File",
                             command=select_file,
