@@ -165,7 +165,6 @@ def open_home_page():
     text_box.grid(row=5,
                   column=0,
                   columnspan=2,
-                  sticky="nsew",
                   padx=3,
                   pady=100)
 
@@ -196,7 +195,7 @@ root.title("Big O Calculator")
 root.resizable(True, True)
 
 #sets minimum size for window
-root.minsize(825, 480)
+root.minsize(800, 450)
 # creating icons
 home_icon = PhotoImage(file="home_icon.png")
 info_icon = PhotoImage(file="info_icon.png")
@@ -207,5 +206,5 @@ root.grid_rowconfigure(5, weight=10)
 root.grid_columnconfigure(0, weight=10)
 
 open_home_page()
-
+root.geometry("1280x720")
 root.mainloop()
