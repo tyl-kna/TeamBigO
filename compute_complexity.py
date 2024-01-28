@@ -3,6 +3,8 @@ import ast
 from pathlib import Path
 import sympy
 
+complexities = {}
+
 class Visitor(ast.NodeVisitor):
     def visit_Await(self, node):
         self.generic_visit(node)
@@ -49,7 +51,6 @@ class Visitor(ast.NodeVisitor):
     def visit_Continue(self,node):
         self.generic_visit(node)
 
-
 class _FunctionFinder(Visitor):
     def __init__(self):
         self.result = []
@@ -62,9 +63,12 @@ class _ComplexityAnalyzer(Visitor):
     def __init__(self):
         self.input_symbols = {}
         self.result = [0]
+        self.symbol_table = {}
 
     def visit_Assign(self, node):
         self.generic_visit(node)
+        for target in node.targets:
+            self.symbol_table[target.id] = self.evaluate(node.value)
 
     def visit_AugAssign(self, node):
         self.generic_visit(node)
@@ -83,6 +87,8 @@ class _ComplexityAnalyzer(Visitor):
         if isinstance(expr, ast.Constant):
             return expr.value
         if isinstance(expr, ast.Name):
+            if expr.id in self.symbol_table:
+                return self.symbol_table[expr.id]
             return self.input_symbols[expr.id]
         if isinstance(expr, ast.Expr):
             return self.evaluate(expr)
@@ -128,6 +134,9 @@ class _ComplexityAnalyzer(Visitor):
         assert len(self.result) == 1
         return self.result[0]
 
+def compute_log(number):
+    return f"log(log(number))"
+
 def compute_range(start, stop=None, step=1):
     if stop is None:
         stop = start
@@ -153,8 +162,8 @@ def find_functions(tree):
 
 def compute_complexity(func_def):
     analyzer = _ComplexityAnalyzer()
-    complexity = analyzer.analyze(func_def)
-    return complexity
+    complexity = analyzer.analyze(func_def).expand()
+    return complexity, sympy.simplify(str(complexity).split("+")[0])
 
 def main():
     parser = argparse.ArgumentParser()
@@ -164,8 +173,10 @@ def main():
     tree = read_program(config.path)
     functions = find_functions(tree)
     for function in functions:
-        print(compute_complexity(function))
+        gr, bo = compute_complexity(function)
+        print(function.name)
+        print(f"Growth Rate Function: {gr}", f"O({bo})", sep="\n")
+        print()
 
 if __name__ == "__main__":
-    print("Ran from terminal as main module")
     main()
