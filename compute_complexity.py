@@ -69,6 +69,7 @@ class _ComplexityAnalyzer(Visitor):
         self.generic_visit(node)
         for target in node.targets:
             self.symbol_table[target.id] = self.evaluate(node.value)
+        print(self.symbol_table)
 
     def visit_AugAssign(self, node):
         self.generic_visit(node)
@@ -84,6 +85,8 @@ class _ComplexityAnalyzer(Visitor):
         self.result[-1] += complexity
 
     def evaluate(self, expr):
+        if expr is None:
+            return None
         if isinstance(expr, ast.Constant):
             return expr.value
         if isinstance(expr, ast.Name):
@@ -92,7 +95,15 @@ class _ComplexityAnalyzer(Visitor):
             return self.input_symbols[expr.id]
         if isinstance(expr, ast.Expr):
             return self.evaluate(expr)
-
+        if isinstance(expr, ast.Subscript):
+            if isinstance(expr.slice, ast.Slice):
+                s = expr.slice
+                iterable = self.evaluate(expr.value)
+                start = self.evaluate(s.lower)
+                stop = self.evaluate(s.upper)
+                step = self.evaluate(s.step)
+                return compute_slice(iterable, start, stop, step)
+            print(expr.args[0].slice.lower.value, expr.args[0].slice.upper.id)
         if isinstance(expr, ast.BinOp):
             if isinstance(expr.op, ast.Mult):
                 return self.evaluate(expr.left) * self.evaluate(expr.right)
@@ -134,8 +145,11 @@ class _ComplexityAnalyzer(Visitor):
         assert len(self.result) == 1
         return self.result[0]
 
-def compute_log(number):
-    return f"log(log(number))"
+def compute_slice(iterable, start, stop, step):
+    start = start or 0
+    stop = stop or iterable.length
+    step = step or 1
+    return _Iterable(sympy.ceiling((stop-start)/step))
 
 def compute_range(start, stop=None, step=1):
     if stop is None:
