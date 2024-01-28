@@ -162,10 +162,14 @@ def open_home_page():
                            'No file was selected, please select a file!')
       return
     else:
-        cal = gui_call(FILE1)
-        expr = sympy.simplify(cal).expand()
+        functions = gui_call(FILE1)
+        final_string = ""
+        print(functions)
+        for key in functions: 
+            final_string += str(key) + "\t\tGrowth Rate: " + str(sympy.simplify(functions[str(key)][0]).expand()) + "\n\t\t" + "Big O Notation: " + str(sympy.simplify(functions[str(key)][1]).expand()) + "\n\n"
+        #expr = sympy.simplify(cal).expand()
 
-        text_box.insert(tk.END, expr)
+        text_box.insert(tk.END, final_string)
     #with open(FILE1, 'r') as file:
     #  content = file.read()
     #  text_box.insert(tk.END, content)
