@@ -59,9 +59,34 @@ def open_info_page():
                             command=open_home_page)
     home_button.grid(row=0, column=0, sticky=tk.W, padx=3, pady=3)
 
-    info_label = tk.Label(root, text="Test info")
-    info_label.grid(row=1, column=0, sticky="nsew")
+    #info_label = tk.Label(root, text="Test info")
+    #info_label.grid(row=1, column=0, sticky="nsew")
+    root.title("Info Page")
+    root.geometry("900x900")  
+    info_label = tk.Label(root, text="Team 4 Member Information")
+    info_label.grid(row=0,column=0, sticky=tk.E,padx=10, pady=10)
+    create_labels()
+    root.mainloop()
 
+def create_labels():
+    label_texts = ["Name: Deep Shah   Major: Computer Science   Grade: Undergraduate", "Name: Tanner Lewis   Major: Computer Science   Grade: Undergraduate", "Name: Xiaole Xie   Major: Information    Grade: Graduate", "Name: Haynie Bastian   Major: Computer Science", 
+                   "Name: David Ludwig   Major: Computer Science   Grade: Phd","Name: Evan Smith   Major: Computer Science   Grade: Undergraduate", "Name: Adrian Munoz   Major: Information systems   Grade: Undergraduate",
+                   "Name: Alex Larabie   Major: Computer Science   Grade: Undergraduate", "Name: Kendra Givens   Major: Computer Science   Grade: Undergraduate",
+                   "Name: Elijah Atkins   Major: Computer Science   Grade: Undergraduate", "Name: Tyler Knapp   Major: Computer Science   Grade: Undergraduate",
+                   "Name: John Thompson   Major: Computer Science   Grade: Undergraduate", "Name: Chris Keiningham   Major: Computer Science   Grade: Undergraduate","Name: Tingting Sun   Major: Computer Science   Grade: Phd",]
+    total_text = ""
+    total_text1 = ""
+    for i, text in enumerate(label_texts):
+        column = i%2
+        if column == 0:
+            total_text += text + "\n"
+        else:
+            total_text1 += text + "\n"
+
+    label = tk.Label(root, text=total_text,justify="left")
+    label1 = tk.Label(root, text=total_text1,justify="left")
+    label.grid(row=2, column=0, sticky=tk.W,padx=2, pady=2)
+    label1.grid(row=2, column=1, sticky=tk.W,padx=2, pady=2)
 
 def open_home_page():
     # Clear all existing widgets
