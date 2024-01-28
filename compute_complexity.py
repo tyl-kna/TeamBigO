@@ -178,5 +178,15 @@ def main():
         print(f"Growth Rate Function: {gr}", f"O({bo})", sep="\n")
         print()
 
+def gui_call(file):
+    tree = read_program(file)
+    functions = find_functions(tree)
+    ret_funcs  = dict()
+    for function in functions:
+        gr, bo = compute_complexity(function)
+        ret_funcs[function.name] = [gr, bo]
+        print(gr, bo, function.name)
+    return ret_funcs
+
 if __name__ == "__main__":
     main()

@@ -1,10 +1,11 @@
-def main():
-    a = 15
-    b = 23
-    print(a+b)
-    for i in range(0, a, 2): #n+1
-        print(i)
 
-    for i in range(a):     # n + 1
-        print(i)           # n
-                           # total: n + 1 + n = 2n + 1
+def main():            # 1
+    a = 10             # 1
+    x = 10             # 1
+    for i in range(a): # A + 1
+        for j in range(a):
+            print("test") # A*A
+            test(a)       #A* A
+                       # 2a + 4
+def test(a):
+    print(a)

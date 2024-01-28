@@ -1,7 +1,8 @@
 import tkinter as tk
 from tkinter import filedialog, messagebox, font, PhotoImage
-
+from compute_complexity import gui_call
 from PIL import Image, ImageTk
+import sympy
 
 TBFILE = None
 FILE1 = None
@@ -154,21 +155,26 @@ def open_home_page():
                            font=14)
   clear_button.grid(row=2, column=0, sticky=tk.E, padx=360)
 
-  def calculate_big_O():
+  def calculate_big_o():
     global FILE1, TBFILE
     if FILE1 == None:
       messagebox.showerror('Selection Error',
                            'No file was selected, please select a file!')
       return
-    with open(FILE1, 'r') as file:
-      content = file.read()
-      text_box.insert(tk.END, content)
-      save_point(text_box)
+    else:
+        cal = gui_call(FILE1)
+        expr = sympy.simplify(cal).expand()
+
+        text_box.insert(tk.END, expr)
+    #with open(FILE1, 'r') as file:
+    #  content = file.read()
+    #  text_box.insert(tk.END, content)
+    save_point(text_box)
     FILE1 = None
 
   calculate_button = tk.Button(root,
                                text="Calculate",
-                               command=calculate_big_O,
+                               command=calculate_big_o,
                                width=8,
                                height=1,
                                font=14)
@@ -188,7 +194,7 @@ def open_home_page():
                      width=75,
                      height=15)
   text_box.grid(row=4, column=0, padx=3, pady=0, sticky="ns")
-  text_box.config(state='disabled')
+  text_box.config()
   scrollbar = tk.Scrollbar(root, command=text_box.yview)
   scrollbar.grid(row=4, column=1, sticky="ns", padx=0, pady=0)
 
@@ -199,7 +205,7 @@ def open_home_page():
 
 def select_file():
   global FILE1
-  file_path = filedialog.askopenfilename(filetypes=[("Text files", "*.txt")])
+  file_path = filedialog.askopenfilename(filetypes=[("Python files", "*.py")])
   FILE1 = file_path
 
 
